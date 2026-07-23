@@ -6,10 +6,11 @@ import { AdminMediaManager } from './AdminMediaManager';
 import { AdminChannelsManager } from './AdminChannelsManager';
 import { AdminCategoriesManager } from './AdminCategoriesManager';
 import { AdminPackagesManager } from './AdminPackagesManager';
+import { AdminBannerAndSliderManager } from './AdminBannerAndSliderManager';
 
 import { 
   LayoutDashboard, Film, Tv, FolderKanban, Crown, ArrowRight, LogOut, 
-  ShieldCheck, Sparkles, Menu, X, Plus
+  ShieldCheck, Sparkles, Menu, X, Plus, SlidersHorizontal, Flame
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -33,7 +34,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onExitAdmin,
   onLogoutAdmin
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'media' | 'channels' | 'categories' | 'packages'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'media' | 'channels' | 'categories' | 'packages' | 'banner_slider'>('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [triggerCreateMedia, setTriggerCreateMedia] = useState(false);
   const [triggerCreateChannel, setTriggerCreateChannel] = useState(false);
@@ -164,6 +165,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         <button
           onClick={() => {
+            setActiveTab('banner_slider');
+            setMobileMenuOpen(false);
+          }}
+          className={`w-full md:w-auto px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeTab === 'banner_slider'
+              ? 'bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/20'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+          }`}
+        >
+          <Flame className="w-4 h-4" />
+          <span>السلايدر والبطاقة الإعلانية</span>
+        </button>
+
+        <button
+          onClick={() => {
             setActiveTab('packages');
             setMobileMenuOpen(false);
           }}
@@ -219,6 +235,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           categories={categories}
           mediaItems={mediaItems}
           onSaveCategories={onSaveCategories}
+        />
+      )}
+
+      {activeTab === 'banner_slider' && (
+        <AdminBannerAndSliderManager
+          mediaItems={mediaItems}
+          onSaveMediaItems={onSaveMediaItems}
         />
       )}
 

@@ -74,12 +74,41 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
           </ul>
         </div>
 
-        {/* Info Column */}
+        {/* Info Column & Developer Rights */}
         <div className="space-y-3">
-          <h4 className="text-sm font-bold text-white font-['Tajawal']">مميزات المنصة</h4>
+          <h4 className="text-sm font-bold text-white font-['Tajawal']">مميزات المنصة وحقوق النظام</h4>
           <p className="text-neutral-400 text-xs">
             تتميز منصة <strong>الأمير نت</strong> بتحديث مستمر على مدار الساعة مع سيرفرات فائقة السرعة تراعي كافة سرعات الإنترنت.
           </p>
+
+          <div className="p-3 rounded-xl bg-neutral-900 border border-amber-500/30 space-y-2">
+            <p className="text-[11px] font-bold text-amber-300">
+              حقوق البرمجة والتصميم والإدارة الكاملة للنظام:
+            </p>
+            <p className="text-xs font-black text-white font-['Tajawal']">
+              المهندس والمبرمج عبدالحميد داوؤد
+            </p>
+
+            {/* Quick Contact Buttons */}
+            <div className="flex items-center gap-2 pt-1">
+              <a
+                href="https://wa.me/967778215553?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%8A%D9%83%D9%85%20%D9%85%D9%87%D9%86%D8%AF%D8%B3%20%D8%B9%D8%A8%D8%AF%D8%A7%D9%84%D8%AD%D9%85%D9%8A%D8%AF%20%D8%AF%D8%A7%D9%88%D8%A3%D8%AF"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] flex items-center gap-1 transition-transform hover:scale-105"
+              >
+                <span>واتساب: 778215553</span>
+              </a>
+
+              <a
+                href="tel:778215553"
+                className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-[10px] flex items-center gap-1 transition-transform hover:scale-105"
+              >
+                <span>اتصال هاتف</span>
+              </a>
+            </div>
+          </div>
+
           <div className="pt-2 text-[11px] text-amber-400/80">
             جميع الحقوق محفوظة © {new Date().getFullYear()} - الأمير نت ALAMEER NET
           </div>

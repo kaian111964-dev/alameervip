@@ -306,11 +306,12 @@ export const AdminMediaManager: React.FC<AdminMediaManagerProps> = ({
             onChange={(e) => setSelectedType(e.target.value)}
             className="bg-neutral-950 border border-neutral-800 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-neutral-200 focus:outline-none cursor-pointer"
           >
-            <option value="all">جميع الأنواع (أفلام ومسلسلات)</option>
+            <option value="all">جميع الأنواع (أفلام ومسلسلات وبرامج)</option>
             <option value="movie">أفلام فقط</option>
             <option value="series">مسلسلات فقط</option>
             <option value="ramadan">مسلسلات رمضان 2026</option>
-            <option value="wrestling">مصارعة حرة</option>
+            <option value="tvshow">برامج تلفزيونية</option>
+            <option value="wrestling">مصارعة حرة ومباريات</option>
           </select>
 
           {/* Category Dropdown */}
@@ -525,7 +526,8 @@ export const AdminMediaManager: React.FC<AdminMediaManagerProps> = ({
                     <option value="movie">🎬 فيلم سينمائي</option>
                     <option value="series">📺 مسلسل درامي</option>
                     <option value="ramadan">🌙 مسلسلات رمضان 2026</option>
-                    <option value="wrestling">🤼 مصارعة حرة وترفيه</option>
+                    <option value="tvshow">🎙️ برامج تلفزيونية وإعلامية</option>
+                    <option value="wrestling">⚽ مصارعة حرة ومباريات</option>
                   </select>
                 </div>
 

@@ -3,16 +3,19 @@ import { LIVE_CHANNELS, LiveChannel } from '../data/liveChannelsData';
 import { Radio, ChevronLeft, Tv, Play, Sparkles, Flame } from 'lucide-react';
 
 interface LiveTvSectionProps {
+  liveChannels?: LiveChannel[];
   onOpenLiveTvPage: () => void;
   onSelectChannel: (channel: LiveChannel) => void;
 }
 
 export const LiveTvSection: React.FC<LiveTvSectionProps> = ({
+  liveChannels,
   onOpenLiveTvPage,
   onSelectChannel
 }) => {
+  const channelsList = liveChannels && liveChannels.length > 0 ? liveChannels : LIVE_CHANNELS;
   // Show top popular live channels on home page section
-  const popularChannels = LIVE_CHANNELS.filter((c) => c.isPopular).slice(0, 6);
+  const popularChannels = channelsList.filter((c) => c.isPopular).slice(0, 6);
 
   return (
     <section className="mb-10 p-5 rounded-3xl bg-gradient-to-r from-neutral-900 via-amber-950/30 to-neutral-900 border border-amber-500/30 shadow-2xl relative overflow-hidden font-['Cairo',sans-serif]">

@@ -3,16 +3,19 @@ import { LIVE_CHANNELS, LIVE_CHANNEL_CATEGORIES, LiveChannel } from '../data/liv
 import { Tv, Radio, Search, Home, ArrowRight, Play, X, ShieldCheck, Sparkles, Volume2, Maximize } from 'lucide-react';
 
 interface LiveTvPageProps {
+  liveChannels: LiveChannel[];
   onBackToHome: () => void;
   onOpenPackages: () => void;
 }
 
-export const LiveTvPage: React.FC<LiveTvPageProps> = ({ onBackToHome, onOpenPackages }) => {
+export const LiveTvPage: React.FC<LiveTvPageProps> = ({ liveChannels, onBackToHome, onOpenPackages }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('الكل');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeChannel, setActiveChannel] = useState<LiveChannel | null>(null);
 
-  const filteredChannels = LIVE_CHANNELS.filter((channel) => {
+  const channelsList = liveChannels && liveChannels.length > 0 ? liveChannels : LIVE_CHANNELS;
+
+  const filteredChannels = channelsList.filter((channel) => {
     const matchesCategory = selectedCategory === 'الكل' || channel.category === selectedCategory;
     const matchesSearch = channel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           channel.currentProgram.toLowerCase().includes(searchQuery.toLowerCase());
@@ -195,7 +198,7 @@ export const LiveTvPage: React.FC<LiveTvPageProps> = ({ onBackToHome, onOpenPack
             <div className="pt-2">
               <h4 className="text-xs font-bold text-neutral-400 mb-2">قنوات مشابهة للبث المباشر:</h4>
               <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {LIVE_CHANNELS.map((ch) => (
+                {channelsList.map((ch) => (
                   <button
                     key={ch.id}
                     onClick={() => setActiveChannel(ch)}
