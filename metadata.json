@@ -1,0 +1,6 @@
+{
+  "name": "الأمير نت",
+  "description": "الأمير نت - منصة مشاهدة أحدث المسلسلات والأفلام العربية والأجنبية أونلاين بجودة عالية وبدون إعلانات",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
