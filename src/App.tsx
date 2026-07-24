@@ -25,7 +25,7 @@ import {
   DEFAULT_ANNOUNCEMENT
 } from './data/storageManager';
 import { db, COLLECTIONS, seedFirestoreIfEmpty } from './lib/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, increment } from 'firebase/firestore';
 import { MediaItem, FilterSortOption } from './types';
 import { LiveChannel } from './data/liveChannelsData';
 import { Sparkles, ShieldCheck, Film, X } from 'lucide-react';
@@ -296,6 +296,16 @@ export function App() {
     closeAllPages();
     setSelectedMediaDetail(item);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Realtime sync: Increment view count directly in Firestore
+    try {
+      const itemRef = doc(db, COLLECTIONS.MEDIA_ITEMS, String(item.id));
+      updateDoc(itemRef, { views: increment(1) }).catch((err) => {
+        console.warn('Firestore view increment notice:', err);
+      });
+    } catch (e) {
+      console.warn('Could not update views in Firestore:', e);
+    }
   };
 
   const handleCategorySelect = (category: string) => {

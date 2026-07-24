@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
+  initializeFirestore,
   getFirestore, 
   collection, 
   doc, 
@@ -24,10 +25,20 @@ const firebaseConfig = {
 // Initialize Firebase App
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firestore with custom databaseId if configured
-export const db = config.firestoreDatabaseId && config.firestoreDatabaseId !== '(default)'
-  ? getFirestore(app, config.firestoreDatabaseId)
-  : getFirestore(app);
+// Initialize Firestore with auto long-polling detection to prevent gRPC/WebSocket streaming errors in container environments
+const customDbId = config.firestoreDatabaseId && config.firestoreDatabaseId !== '(default)'
+  ? config.firestoreDatabaseId
+  : undefined;
+
+export const db = (() => {
+  try {
+    return initializeFirestore(app, {
+      experimentalAutoDetectLongPolling: true,
+    }, customDbId);
+  } catch (e) {
+    return customDbId ? getFirestore(app, customDbId) : getFirestore(app);
+  }
+})();
 
 // Initialize Firebase Auth
 export const auth = getAuth(app);

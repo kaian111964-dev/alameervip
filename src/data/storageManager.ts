@@ -2,7 +2,7 @@ import { MediaItem, Season, Episode, VideoServer } from '../types';
 import { MEDIA_ITEMS } from './mediaData';
 import { LIVE_CHANNELS, LiveChannel } from './liveChannelsData';
 import { db, COLLECTIONS } from '../lib/firebase';
-import { doc, setDoc, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 const MEDIA_STORAGE_KEY = 'alameer_media_items_v2';
 const CHANNELS_STORAGE_KEY = 'alameer_live_channels_v2';
@@ -164,6 +164,16 @@ export function saveStoredMediaItems(items: MediaItem[]): void {
   }
 }
 
+export function deleteStoredMediaItem(id: string): void {
+  try {
+    deleteDoc(doc(db, COLLECTIONS.MEDIA_ITEMS, String(id))).catch((err) => {
+      console.warn('Firestore delete media item failed:', err);
+    });
+  } catch (e) {
+    console.error('Failed to delete media item from Firestore', e);
+  }
+}
+
 // Helper for Live Channels
 export function getStoredLiveChannels(): LiveChannel[] {
   try {
@@ -193,6 +203,16 @@ export function saveStoredLiveChannels(channels: LiveChannel[]): void {
     });
   } catch (e) {
     console.error('Failed to save live channels to storage', e);
+  }
+}
+
+export function deleteStoredLiveChannel(id: string): void {
+  try {
+    deleteDoc(doc(db, COLLECTIONS.LIVE_CHANNELS, String(id))).catch((err) => {
+      console.warn('Firestore delete live channel failed:', err);
+    });
+  } catch (e) {
+    console.error('Failed to delete live channel from Firestore', e);
   }
 }
 

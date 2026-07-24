@@ -5,7 +5,7 @@ import {
   Calendar, Award, CreditCard, Heart, LogOut, Edit3, Save, X, Key, AlertTriangle, Shield
 } from 'lucide-react';
 import { db, auth, COLLECTIONS } from '../lib/firebase';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -121,13 +121,35 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
     try {
       if (mode === 'register') {
+        // 1. Check if email already exists in Firestore or belongs to admin
+        if (cleanEmail === 'admin@alameer.com') {
+          throw new Error('هذا البريد الإلكتروني محجوز لإدارة المنصة! يرجى استخدام شاشة تسجيل الدخول.');
+        }
+
+        const existingQuery = query(collection(db, COLLECTIONS.USERS), where('email', '==', cleanEmail));
+        const existingSnap = await getDocs(existingQuery);
+        if (!existingSnap.empty) {
+          throw new Error('عذراً، هذا البريد الإلكتروني مسجل بالفعل في منصة الأمير نت! لا يمكنك إنشاء أكثر من حساب بنفس البريد. يرجى تسجيل الدخول.');
+        }
+
         let firebaseUid = '';
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
           firebaseUid = userCredential.user.uid;
         } catch (authErr: any) {
-          console.warn('Firebase Auth fallback:', authErr.message);
-          firebaseUid = `user-${Date.now()}`;
+          console.error('Firebase Auth register error:', authErr);
+          const code = authErr.code || '';
+          if (code === 'auth/email-already-in-use') {
+            throw new Error('عذراً، هذا البريد الإلكتروني مسجل بالفعل في منصة الأمير نت! لا يمكنك إنشاء أكثر من حساب بنفس البريد. يرجى تسجيل الدخول.');
+          } else if (code === 'auth/weak-password') {
+            throw new Error('كلمة المرور ضعيفة جداً. يجب أن تتكون من 6 أحرف على الأقل.');
+          } else if (code === 'auth/invalid-email') {
+            throw new Error('صيغة البريد الإلكتروني غير صحيحة.');
+          } else if (code === 'auth/operation-not-allowed') {
+            throw new Error('خدمة تسجيل الدخول بالبريد الإلكتروني غير مفعلة في إعدادات الفايربيس.');
+          } else {
+            throw new Error('فشل إنشاء الحساب في الفايربيس: ' + (authErr.message || 'بيانات غير صحيحة'));
+          }
         }
 
         const displayName = name.trim() || cleanEmail.split('@')[0] || 'مشترك جديد';
@@ -147,34 +169,58 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           lastLogin: new Date().toISOString().split('T')[0]
         };
 
-        // Save new user directly to Firestore!
+        // Save new user directly to Firestore
         await setDoc(doc(db, COLLECTIONS.USERS, userDocId), newUser);
 
         onLoginSuccess(displayName);
-        setSuccessMessage(`مرحباً بك ${displayName}! تم إنشاء حسابك بنجاح وحفظه في الفايربيس.`);
+        setSuccessMessage(`مرحباً بك ${displayName}! تم إنشاء حسابك بنجاح والتحقق منه في الفايربيس.`);
       } else {
         // Mode === 'login'
         let displayName = cleanEmail.split('@')[0];
+        let firebaseUid = '';
+
         try {
           const userCred = await signInWithEmailAndPassword(auth, cleanEmail, password);
+          firebaseUid = userCred.user.uid;
           if (userCred.user.displayName) displayName = userCred.user.displayName;
-        } catch (authErr) {
-          console.warn('Firebase login auth fallback:', authErr);
+        } catch (authErr: any) {
+          console.error('Firebase Auth login error:', authErr);
+          const code = authErr.code || '';
+          if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+            throw new Error('كلمة المرور غير صحيحة! يرجى التأكد من كلمة المرور وإعادة المحاولة.');
+          } else if (code === 'auth/user-not-found') {
+            throw new Error('البريد الإلكتروني غير مسجل بالمنصة. يمكنك إنشاء حساب جديد أولاً.');
+          } else if (code === 'auth/invalid-email') {
+            throw new Error('صيغة البريد الإلكتروني غير صحيحة.');
+          } else if (code === 'auth/too-many-requests') {
+            throw new Error('تم حظر المحاولات الفاشلة مؤقتاً للحماية. حاول بعد بضع دقائق.');
+          } else {
+            throw new Error('فشل تسجيل الدخول: كلمة المرور أو البريد الإلكتروني غير صحيح.');
+          }
         }
 
-        const userDocId = cleanEmail.replace(/[^a-zA-Z0-9]/g, '_');
-        const userRef = doc(db, COLLECTIONS.USERS, userDocId);
-        const snap = await getDoc(userRef);
+        // Fetch user record from Firestore to check subscription status and profile details
+        const userDocId = firebaseUid || cleanEmail.replace(/[^a-zA-Z0-9]/g, '_');
+        let snap = await getDoc(doc(db, COLLECTIONS.USERS, userDocId));
+
+        if (!snap.exists()) {
+          const altDocId = cleanEmail.replace(/[^a-zA-Z0-9]/g, '_');
+          snap = await getDoc(doc(db, COLLECTIONS.USERS, altDocId));
+        }
 
         if (snap.exists()) {
           const data = snap.data() as UserProfile;
+          if (data.subscriptionStatus === 'محظور') {
+            await signOut(auth).catch(() => {});
+            throw new Error('عذراً، هذا الحساب محظور حالياً من قبل إدارة منصة الأمير نت.');
+          }
           displayName = data.displayName || displayName;
-          // Update lastLogin
-          updateDoc(userRef, { lastLogin: new Date().toISOString().split('T')[0] }).catch(() => {});
+          updateDoc(snap.ref, { lastLogin: new Date().toISOString().split('T')[0] }).catch(() => {});
         } else {
-          // Create document if didn't exist
+          // If Firestore doc missing for existing Auth user, create default
           const newProf: UserProfile = {
             id: userDocId,
+            uid: firebaseUid,
             email: cleanEmail,
             displayName: displayName,
             role: 'user',
@@ -183,11 +229,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             createdAt: new Date().toISOString().split('T')[0]
           };
-          await setDoc(userRef, newProf).catch(() => {});
+          await setDoc(doc(db, COLLECTIONS.USERS, userDocId), newProf).catch(() => {});
         }
 
         onLoginSuccess(displayName);
-        setSuccessMessage(`تم تسجيل الدخول بنجاح! أهلاً بك يا ${displayName}.`);
+        setSuccessMessage(`تم تسجيل الدخول والتحقق بنجاح! أهلاً بك يا ${displayName}.`);
       }
 
       setLoading(false);
