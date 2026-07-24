@@ -1,6 +1,8 @@
 import { MediaItem, Season, Episode, VideoServer } from '../types';
 import { MEDIA_ITEMS } from './mediaData';
 import { LIVE_CHANNELS, LiveChannel } from './liveChannelsData';
+import { db, COLLECTIONS } from '../lib/firebase';
+import { doc, setDoc, writeBatch } from 'firebase/firestore';
 
 const MEDIA_STORAGE_KEY = 'alameer_media_items_v2';
 const CHANNELS_STORAGE_KEY = 'alameer_live_channels_v2';
@@ -87,6 +89,9 @@ export function getStoredAnnouncement(): AnnouncementBanner {
 export function saveStoredAnnouncement(banner: AnnouncementBanner): void {
   try {
     localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(banner));
+    setDoc(doc(db, COLLECTIONS.ANNOUNCEMENT, 'main'), banner).catch((err) => {
+      console.warn('Firestore announcement sync failed:', err);
+    });
   } catch (e) {
     console.error('Failed to save announcement banner to storage', e);
   }
@@ -112,9 +117,16 @@ export function getStoredCategoryItems(): CategoryItem[] {
 export function saveStoredCategoryItems(items: CategoryItem[]): void {
   try {
     localStorage.setItem(CATEGORY_ITEMS_STORAGE_KEY, JSON.stringify(items));
-    // Also sync standard category string list
     const stringList = items.map(i => i.name);
     saveStoredCategories(stringList);
+
+    const batch = writeBatch(db);
+    items.forEach((item) => {
+      batch.set(doc(db, COLLECTIONS.CATEGORY_ITEMS, String(item.id)), item);
+    });
+    batch.commit().catch((err) => {
+      console.warn('Firestore category items sync failed:', err);
+    });
   } catch (e) {
     console.error('Failed to save category items to storage', e);
   }
@@ -133,7 +145,6 @@ export function getStoredMediaItems(): MediaItem[] {
   } catch (e) {
     console.error('Failed to read media items from storage', e);
   }
-  // Initialize with default dataset if empty
   saveStoredMediaItems(MEDIA_ITEMS);
   return MEDIA_ITEMS;
 }
@@ -141,6 +152,13 @@ export function getStoredMediaItems(): MediaItem[] {
 export function saveStoredMediaItems(items: MediaItem[]): void {
   try {
     localStorage.setItem(MEDIA_STORAGE_KEY, JSON.stringify(items));
+    const batch = writeBatch(db);
+    items.forEach((item) => {
+      batch.set(doc(db, COLLECTIONS.MEDIA_ITEMS, String(item.id)), item);
+    });
+    batch.commit().catch((err) => {
+      console.warn('Firestore media items sync failed:', err);
+    });
   } catch (e) {
     console.error('Failed to save media items to storage', e);
   }
@@ -166,6 +184,13 @@ export function getStoredLiveChannels(): LiveChannel[] {
 export function saveStoredLiveChannels(channels: LiveChannel[]): void {
   try {
     localStorage.setItem(CHANNELS_STORAGE_KEY, JSON.stringify(channels));
+    const batch = writeBatch(db);
+    channels.forEach((ch) => {
+      batch.set(doc(db, COLLECTIONS.LIVE_CHANNELS, String(ch.id)), ch);
+    });
+    batch.commit().catch((err) => {
+      console.warn('Firestore live channels sync failed:', err);
+    });
   } catch (e) {
     console.error('Failed to save live channels to storage', e);
   }

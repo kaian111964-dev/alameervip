@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "media_items": {
+      "title": "Media Item",
+      "description": "Movies, series, sports matches and TV shows catalog",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "category": { "type": "string" },
+        "year": { "type": "number" },
+        "rating": { "type": "number text" },
+        "duration": { "type": "string" },
+        "quality": { "type": "string" },
+        "poster": { "type": "string" },
+        "banner": { "type": "string" },
+        "description": { "type": "string" },
+        "genres": { "type": "array" },
+        "isPinned": { "type": "boolean" },
+        "translation": { "type": "string" },
+        "language": { "type": "string" },
+        "directors": { "type": "array" },
+        "cast": { "type": "array" },
+        "seasons": { "type": "array" },
+        "servers": { "type": "array" }
+      }
+    },
+    "live_channels": {
+      "title": "Live Channel",
+      "description": "Live streaming TV channels and broadcast streams",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "logo": { "type": "string" },
+        "isLive": { "type": "boolean" },
+        "currentProgram": { "type": "string" },
+        "quality": { "type": "string" },
+        "streamUrl": { "type": "string" },
+        "backupStreamUrl": { "type": "string" }
+      }
+    },
+    "category_items": {
+      "title": "Category Item",
+      "description": "Custom dynamic categories for organization",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "order": { "type": "number" }
+      }
+    },
+    "announcements": {
+      "title": "Announcement Banner",
+      "description": "Top notice banner configuration",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "badgeText": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "buttonText": { "type": "string" },
+        "linkUrl": { "type": "string" },
+        "networkNumber": { "type": "string" }
+      }
+    }
+  }
+}

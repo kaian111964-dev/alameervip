@@ -7,11 +7,13 @@ import { AdminChannelsManager } from './AdminChannelsManager';
 import { AdminCategoriesManager } from './AdminCategoriesManager';
 import { AdminPackagesManager } from './AdminPackagesManager';
 import { AdminBannerAndSliderManager } from './AdminBannerAndSliderManager';
+import { AdminUsersManager } from './AdminUsersManager';
 
 import { 
   LayoutDashboard, Film, Tv, FolderKanban, Crown, ArrowRight, LogOut, 
-  ShieldCheck, Sparkles, Menu, X, Plus, SlidersHorizontal, Flame
+  ShieldCheck, Sparkles, Menu, X, Plus, SlidersHorizontal, Flame, Users
 } from 'lucide-react';
+
 
 interface AdminDashboardProps {
   mediaItems: MediaItem[];
@@ -34,7 +36,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onExitAdmin,
   onLogoutAdmin
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'media' | 'channels' | 'categories' | 'packages' | 'banner_slider'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'media' | 'channels' | 'categories' | 'packages' | 'banner_slider' | 'users'>('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [triggerCreateMedia, setTriggerCreateMedia] = useState(false);
   const [triggerCreateChannel, setTriggerCreateChannel] = useState(false);
@@ -193,6 +195,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <span>إدارة الباقات والكروت</span>
         </button>
 
+        <button
+          onClick={() => {
+            setActiveTab('users');
+            setMobileMenuOpen(false);
+          }}
+          className={`w-full md:w-auto px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeTab === 'users'
+              ? 'bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/20'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>إدارة المستخدمين والمشتركين</span>
+        </button>
+
       </div>
 
       {/* Render Active Tab View */}
@@ -247,6 +264,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {activeTab === 'packages' && (
         <AdminPackagesManager />
+      )}
+
+      {activeTab === 'users' && (
+        <AdminUsersManager />
       )}
 
     </div>

@@ -5,13 +5,13 @@ import { FilterBar } from './components/FilterBar';
 import { MediaCard } from './components/MediaCard';
 import { CategorySections } from './components/CategorySections';
 import { MediaDetailPage } from './components/MediaDetailPage';
-import { FavoritesDrawer } from './components/FavoritesDrawer';
 import { Footer } from './components/Footer';
 import { AnnouncementCard } from './components/AnnouncementCard';
 import { LiveTvSection } from './components/LiveTvSection';
 import { LiveTvPage } from './components/LiveTvPage';
-import { AuthModal } from './components/AuthModal';
-import { PackagesModal } from './components/PackagesModal';
+import { AuthPage } from './components/AuthPage';
+import { PackagesPage } from './components/PackagesPage';
+import { FavoritesPage } from './components/FavoritesPage';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { 
   getStoredMediaItems, 
@@ -19,8 +19,13 @@ import {
   getStoredLiveChannels, 
   saveStoredLiveChannels, 
   getStoredCategories, 
-  saveStoredCategories 
+  saveStoredCategories,
+  getStoredCategoryItems,
+  getStoredAnnouncement,
+  DEFAULT_ANNOUNCEMENT
 } from './data/storageManager';
+import { db, COLLECTIONS, seedFirestoreIfEmpty } from './lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { MediaItem, FilterSortOption } from './types';
 import { LiveChannel } from './data/liveChannelsData';
 import { Sparkles, ShieldCheck, Film, X } from 'lucide-react';
@@ -38,12 +43,65 @@ export function App() {
   const [liveChannels, setLiveChannels] = useState<LiveChannel[]>(() => getStoredLiveChannels());
   const [categories, setCategories] = useState<string[]>(() => getStoredCategories());
 
-  // View States
+  // Firestore Initial Seed and Realtime Snapshot Listeners
+  useEffect(() => {
+    // 1. Initial Seed to Firestore if collections are empty
+    seedFirestoreIfEmpty(
+      getStoredMediaItems(),
+      getStoredLiveChannels(),
+      getStoredCategoryItems(),
+      getStoredAnnouncement()
+    );
+
+    // 2. Realtime listener for Media Items
+    const unsubMedia = onSnapshot(collection(db, COLLECTIONS.MEDIA_ITEMS), (snapshot) => {
+      if (!snapshot.empty) {
+        const items = snapshot.docs.map((d) => d.data() as MediaItem);
+        setMediaItems(items);
+        localStorage.setItem('alameer_media_items_v2', JSON.stringify(items));
+      }
+    }, (err) => {
+      console.warn('Firestore media subscription error:', err);
+    });
+
+    // 3. Realtime listener for Live Channels
+    const unsubChannels = onSnapshot(collection(db, COLLECTIONS.LIVE_CHANNELS), (snapshot) => {
+      if (!snapshot.empty) {
+        const channels = snapshot.docs.map((d) => d.data() as LiveChannel);
+        setLiveChannels(channels);
+        localStorage.setItem('alameer_live_channels_v2', JSON.stringify(channels));
+      }
+    }, (err) => {
+      console.warn('Firestore channels subscription error:', err);
+    });
+
+    // 4. Realtime listener for Categories
+    const unsubCategories = onSnapshot(collection(db, COLLECTIONS.CATEGORY_ITEMS), (snapshot) => {
+      if (!snapshot.empty) {
+        const catItems = snapshot.docs.map((d) => d.data() as any);
+        const catNames = catItems.map((c) => c.name);
+        if (catNames.length > 0) {
+          setCategories(catNames);
+          localStorage.setItem('alameer_categories_v2', JSON.stringify(catNames));
+        }
+      }
+    }, (err) => {
+      console.warn('Firestore categories subscription error:', err);
+    });
+
+    return () => {
+      unsubMedia();
+      unsubChannels();
+      unsubCategories();
+    };
+  }, []);
+
+  // Dedicated Full-Page View States (No Popups/Modals)
   const [selectedMediaDetail, setSelectedMediaDetail] = useState<MediaItem | null>(null);
-  const [favoritesDrawerOpen, setFavoritesDrawerOpen] = useState(false);
+  const [isFavoritesPageOpen, setIsFavoritesPageOpen] = useState(false);
   const [isLiveTvPageOpen, setIsLiveTvPageOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isPackagesModalOpen, setIsPackagesModalOpen] = useState(false);
+  const [isAuthPageOpen, setIsAuthPageOpen] = useState(false);
+  const [isPackagesPageOpen, setIsPackagesPageOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [activeLiveChannel, setActiveLiveChannel] = useState<LiveChannel | null>(null);
 
@@ -82,6 +140,9 @@ export function App() {
     // If admin logged in, open admin dashboard automatically
     if (name === 'admin@alameer.com') {
       setIsAdminDashboardOpen(true);
+      setIsAuthPageOpen(false);
+    } else {
+      setIsAuthPageOpen(false);
     }
   };
 
@@ -222,14 +283,24 @@ export function App() {
     activeSort
   ]);
 
+  const closeAllPages = () => {
+    setIsAdminDashboardOpen(false);
+    setIsLiveTvPageOpen(false);
+    setIsAuthPageOpen(false);
+    setIsPackagesPageOpen(false);
+    setIsFavoritesPageOpen(false);
+    setSelectedMediaDetail(null);
+  };
+
   const handleSelectMedia = (item: MediaItem) => {
+    closeAllPages();
     setSelectedMediaDetail(item);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCategorySelect = (category: string) => {
+    closeAllPages();
     setSelectedCategory(category);
-    setSelectedMediaDetail(null); // Return to home grid filtered by category
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -241,28 +312,42 @@ export function App() {
         searchQuery={searchQuery}
         setSearchQuery={(q) => {
           setSearchQuery(q);
-          if (selectedMediaDetail) setSelectedMediaDetail(null);
-          if (isLiveTvPageOpen) setIsLiveTvPageOpen(false);
+          closeAllPages();
         }}
         selectedCategory={selectedCategory}
         setSelectedCategory={(cat) => {
           handleCategorySelect(cat);
-          if (isLiveTvPageOpen) setIsLiveTvPageOpen(false);
         }}
         savedCount={favorites.length}
-        onOpenFavorites={() => setFavoritesDrawerOpen(true)}
-        onOpenAuth={() => setIsAuthModalOpen(true)}
-        onOpenLiveTv={() => {
-          setIsLiveTvPageOpen(true);
-          setSelectedMediaDetail(null);
+        onOpenFavorites={() => {
+          closeAllPages();
+          setIsFavoritesPageOpen(true);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-        onOpenPackages={() => setIsPackagesModalOpen(true)}
-        onOpenAdmin={() => setIsAdminDashboardOpen(true)}
+        onOpenAuth={() => {
+          closeAllPages();
+          setIsAuthPageOpen(true);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenLiveTv={() => {
+          closeAllPages();
+          setIsLiveTvPageOpen(true);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenPackages={() => {
+          closeAllPages();
+          setIsPackagesPageOpen(true);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenAdmin={() => {
+          closeAllPages();
+          setIsAdminDashboardOpen(true);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         userName={userName}
       />
 
-      {/* Render Admin Dashboard View if Admin mode is Active */}
+      {/* Render Dedicated Full-Page View States (No Popups/Modals) */}
       {isAdminDashboardOpen ? (
         <AdminDashboard
           mediaItems={mediaItems}
@@ -274,11 +359,43 @@ export function App() {
           onExitAdmin={() => setIsAdminDashboardOpen(false)}
           onLogoutAdmin={handleLogout}
         />
+      ) : isAuthPageOpen ? (
+        <AuthPage
+          onBackToHome={() => setIsAuthPageOpen(false)}
+          onLoginSuccess={handleLoginSuccess}
+          onOpenPackages={() => {
+            setIsAuthPageOpen(false);
+            setIsPackagesPageOpen(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          currentUserName={userName}
+          onLogout={handleLogout}
+        />
+      ) : isPackagesPageOpen ? (
+        <PackagesPage
+          onBackToHome={() => setIsPackagesPageOpen(false)}
+        />
+      ) : isFavoritesPageOpen ? (
+        <FavoritesPage
+          favorites={favorites}
+          seriesAlerts={seriesAlerts}
+          allItems={mediaItems}
+          onBackToHome={() => setIsFavoritesPageOpen(false)}
+          onSelectMedia={handleSelectMedia}
+          onToggleBookmark={toggleBookmark}
+          onToggleAlert={toggleSeriesAlert}
+          onClearAllFavorites={() => setFavorites([])}
+        />
       ) : isLiveTvPageOpen ? (
         /* Full-Page Live TV Channels View */
         <LiveTvPage
+          liveChannels={liveChannels}
           onBackToHome={() => setIsLiveTvPageOpen(false)}
-          onOpenPackages={() => setIsPackagesModalOpen(true)}
+          onOpenPackages={() => {
+            setIsLiveTvPageOpen(false);
+            setIsPackagesPageOpen(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
         />
       ) : selectedMediaDetail ? (
         /* Full-Page Detailed View for Movie/Series */
@@ -306,7 +423,7 @@ export function App() {
           )}
 
           {/* Main Container */}
-          <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-6">
+          <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 w-full py-6">
             
             {/* New Rotating Promotional Announcement Banner Card */}
             <AnnouncementCard />
@@ -314,12 +431,15 @@ export function App() {
             {/* Live Streaming Channels Section (Above Latest Additions) */}
             {!searchQuery && selectedCategory === 'الكل' && (
               <LiveTvSection
+                liveChannels={liveChannels}
                 onOpenLiveTvPage={() => {
+                  closeAllPages();
                   setIsLiveTvPageOpen(true);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onSelectChannel={(channel) => {
                   setActiveLiveChannel(channel);
+                  closeAllPages();
                   setIsLiveTvPageOpen(true);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
@@ -377,7 +497,7 @@ export function App() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
                 {filteredItems.map((item) => (
                   <MediaCard
                     key={item.id}
@@ -408,32 +528,6 @@ export function App() {
           </main>
         </>
       )}
-
-      {/* Favorites Drawer */}
-      <FavoritesDrawer
-        isOpen={favoritesDrawerOpen}
-        onClose={() => setFavoritesDrawerOpen(false)}
-        favorites={favorites}
-        onSelectMedia={(item) => {
-          handleSelectMedia(item);
-          setFavoritesDrawerOpen(false);
-        }}
-        onRemoveFavorite={toggleBookmark}
-      />
-
-      {/* Authentication Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onLoginSuccess={handleLoginSuccess}
-        onOpenPackages={() => setIsPackagesModalOpen(true)}
-      />
-
-      {/* VIP Subscription Packages Modal */}
-      <PackagesModal
-        isOpen={isPackagesModalOpen}
-        onClose={() => setIsPackagesModalOpen(false)}
-      />
 
       {/* Platform Footer */}
       <Footer onSelectCategory={handleCategorySelect} />

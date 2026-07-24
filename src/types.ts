@@ -57,3 +57,22 @@ export interface MediaItem {
 
 export type FilterSortOption = 'latest' | 'imdbRating' | 'views' | 'pinned' | 'newMovies' | 'newEpisodes';
 
+export type SubscriptionPlan = 'مجاني' | 'VIP شهري' | 'VIP سنوي' | 'باقة عائلية';
+export type SubscriptionStatus = 'نشط' | 'منتهي' | 'معلق' | 'محظور';
+
+export interface UserProfile {
+  id: string;
+  uid?: string;
+  email: string;
+  displayName: string;
+  phone?: string;
+  role: 'user' | 'admin';
+  subscriptionPlan: SubscriptionPlan;
+  subscriptionStatus: SubscriptionStatus;
+  subscriptionExpiry?: string;
+  createdAt: string;
+  lastLogin?: string;
+  notes?: string;
+  avatarUrl?: string;
+}
+
