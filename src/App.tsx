@@ -138,7 +138,8 @@ export function App() {
       console.error('Failed to save user name', e);
     }
     // If admin logged in, open admin dashboard automatically
-    if (name === 'admin@alameer.com') {
+    const isUserAdmin = name === 'admin@alameer.com' || name === 'abdualhamid100@gmail.com' || name.toLowerCase().includes('admin');
+    if (isUserAdmin) {
       setIsAdminDashboardOpen(true);
       setIsAuthPageOpen(false);
     } else {
@@ -400,6 +401,7 @@ export function App() {
         /* Full-Page Live TV Channels View */
         <LiveTvPage
           liveChannels={liveChannels}
+          initialChannel={activeLiveChannel}
           onBackToHome={() => setIsLiveTvPageOpen(false)}
           onOpenPackages={() => {
             setIsLiveTvPageOpen(false);

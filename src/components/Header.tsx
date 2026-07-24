@@ -67,35 +67,35 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-50 w-full glass-header border-b border-amber-500/15 shadow-2xl transition-all duration-300">
       {/* Top Security & Ad-Free Banner */}
-      <div className="bg-gradient-to-r from-amber-950/80 via-neutral-900 to-amber-950/80 text-amber-300 text-xs py-1.5 px-4 text-center border-b border-amber-500/10 flex items-center justify-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-amber-400 animate-pulse" />
-        <span className="font-semibold tracking-wide">
+      <div className="bg-gradient-to-r from-amber-950/80 via-neutral-900 to-amber-950/80 text-amber-300 text-[10px] sm:text-xs py-1 px-2 sm:px-4 text-center border-b border-amber-500/10 flex items-center justify-center gap-1.5 sm:gap-2">
+        <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 animate-pulse shrink-0" />
+        <span className="font-semibold tracking-wide truncate">
           منصة <strong className="text-white font-bold">الأمير نت</strong> المحدثة - مشاهدة سريعة وبدون إعلانات منبثقة إطلاقاً 🛡️
         </span>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
           
           {/* Main Brand Logo - الأمير نت */}
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setSelectedCategory('الكل')}>
-            <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-300 p-0.5 shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform duration-300">
+          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer group shrink-0" onClick={() => setSelectedCategory('الكل')}>
+            <div className="relative flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-300 p-0.5 shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform duration-300">
               <div className="w-full h-full bg-neutral-950 rounded-[10px] flex items-center justify-center">
-                <Crown className="w-6 h-6 text-amber-400 group-hover:rotate-12 transition-transform duration-300" />
+                <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 group-hover:rotate-12 transition-transform duration-300" />
               </div>
-              <Sparkles className="absolute -top-1 -right-1 w-4 h-4 text-amber-300 animate-bounce" />
+              <Sparkles className="absolute -top-1 -right-1 w-3.5 h-3.5 text-amber-300 animate-bounce" />
             </div>
 
             <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight font-['Tajawal'] gold-gradient-text drop-shadow-md">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="text-lg sm:text-2xl lg:text-3xl font-black tracking-tight font-['Tajawal'] gold-gradient-text drop-shadow-md">
                   الأمير نت
                 </h1>
-                <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="hidden xs:inline-block text-[9px] sm:text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider">
                   ALAMEER NET
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-400 font-medium">عالم الأفلام والمسلسلات بدون إعلانات</p>
+              <p className="text-[10px] sm:text-[11px] text-neutral-400 font-medium hidden sm:block">عالم الأفلام والمسلسلات بدون إعلانات</p>
             </div>
           </div>
 
@@ -275,8 +275,8 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* ADMIN PANEL BUTTON - Appears ONLY when logged in as admin@alameer.com */}
-            {userName === 'admin@alameer.com' && onOpenAdmin && (
+            {/* ADMIN PANEL BUTTON - Appears when logged in as admin */}
+            {(userName === 'admin@alameer.com' || userName === 'abdualhamid100@gmail.com' || (userName && userName.toLowerCase().includes('admin'))) && onOpenAdmin && (
               <button
                 onClick={onOpenAdmin}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-transform hover:scale-105 cursor-pointer animate-pulse"

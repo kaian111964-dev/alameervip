@@ -94,6 +94,24 @@ export async function seedFirestoreIfEmpty(initialMedia: any[], initialChannels:
       await setDoc(annRef, initialAnnouncement);
     }
 
+    // Seed Admin Users in Firestore
+    const adminUserRef = doc(db, COLLECTIONS.USERS, 'admin_abdualhamid100');
+    const adminSnap = await getDoc(adminUserRef);
+    if (!adminSnap.exists()) {
+      await setDoc(adminUserRef, {
+        id: 'admin_abdualhamid100',
+        uid: 'admin_abdualhamid100',
+        email: 'abdualhamid100@gmail.com',
+        displayName: 'المسؤول عبدالحميد',
+        role: 'admin',
+        subscriptionPlan: 'VIP سنوي',
+        subscriptionStatus: 'نشط',
+        subscriptionExpiry: '2030-12-31',
+        createdAt: '2026-01-01',
+        lastLogin: new Date().toISOString().split('T')[0]
+      });
+    }
+
   } catch (err) {
     console.warn('Firestore seeding skipped or error occurred:', err);
   }

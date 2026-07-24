@@ -122,7 +122,8 @@ export function saveStoredCategoryItems(items: CategoryItem[]): void {
 
     const batch = writeBatch(db);
     items.forEach((item) => {
-      batch.set(doc(db, COLLECTIONS.CATEGORY_ITEMS, String(item.id)), item);
+      const cleanItem = JSON.parse(JSON.stringify(item));
+      batch.set(doc(db, COLLECTIONS.CATEGORY_ITEMS, String(item.id)), cleanItem);
     });
     batch.commit().catch((err) => {
       console.warn('Firestore category items sync failed:', err);
@@ -154,7 +155,8 @@ export function saveStoredMediaItems(items: MediaItem[]): void {
     localStorage.setItem(MEDIA_STORAGE_KEY, JSON.stringify(items));
     const batch = writeBatch(db);
     items.forEach((item) => {
-      batch.set(doc(db, COLLECTIONS.MEDIA_ITEMS, String(item.id)), item);
+      const cleanItem = JSON.parse(JSON.stringify(item));
+      batch.set(doc(db, COLLECTIONS.MEDIA_ITEMS, String(item.id)), cleanItem);
     });
     batch.commit().catch((err) => {
       console.warn('Firestore media items sync failed:', err);
@@ -196,7 +198,8 @@ export function saveStoredLiveChannels(channels: LiveChannel[]): void {
     localStorage.setItem(CHANNELS_STORAGE_KEY, JSON.stringify(channels));
     const batch = writeBatch(db);
     channels.forEach((ch) => {
-      batch.set(doc(db, COLLECTIONS.LIVE_CHANNELS, String(ch.id)), ch);
+      const cleanCh = JSON.parse(JSON.stringify(ch));
+      batch.set(doc(db, COLLECTIONS.LIVE_CHANNELS, String(ch.id)), cleanCh);
     });
     batch.commit().catch((err) => {
       console.warn('Firestore live channels sync failed:', err);

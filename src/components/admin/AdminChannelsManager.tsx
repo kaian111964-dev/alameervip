@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LiveChannel, LIVE_CHANNEL_CATEGORIES } from '../../data/liveChannelsData';
+import { deleteStoredLiveChannel } from '../../data/storageManager';
 import { Tv, Plus, Search, Edit3, Trash2, Radio, Play, Sparkles, X } from 'lucide-react';
 
 interface AdminChannelsManagerProps {
@@ -61,6 +62,7 @@ export const AdminChannelsManager: React.FC<AdminChannelsManagerProps> = ({
 
   const handleDeleteChannel = (id: string) => {
     if (window.confirm('هل أنت تأكد من حذف هذه القناة نهائياً من البث المباشر؟')) {
+      deleteStoredLiveChannel(id);
       const updated = channels.filter((c) => c.id !== id);
       onSaveChannels(updated);
     }

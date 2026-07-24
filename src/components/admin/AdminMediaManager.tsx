@@ -5,6 +5,8 @@ import {
   CheckCircle2, X, Sparkles, ChevronDown, ChevronRight, Save, Eye, Star, Link, ExternalLink
 } from 'lucide-react';
 
+import { deleteStoredMediaItem } from '../../data/storageManager';
+
 interface AdminMediaManagerProps {
   mediaItems: MediaItem[];
   categories: string[];
@@ -118,6 +120,7 @@ export const AdminMediaManager: React.FC<AdminMediaManagerProps> = ({
   // Handle Delete Media
   const handleDeleteMedia = (id: string) => {
     if (window.confirm('هل أنت تأكد من إزالة هذا العنصر نهائياً من قاعدة البيانات؟')) {
+      deleteStoredMediaItem(id);
       const updatedList = mediaItems.filter((item) => item.id !== id);
       onSaveMediaItems(updatedList);
     }
